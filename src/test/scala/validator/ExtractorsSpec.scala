@@ -19,6 +19,13 @@ class ExtractorsSpec extends FunSuite {
     assert(int("b").run(params) == ValidationFailure("b" -> Seq(ValidationError("required"))))
     assert(int("a").run(Map("a" -> Long.MaxValue.toString)) == ValidationFailure("a" -> Seq(ValidationError("int"))))
   }
+  test("boolean") {
+    assert(boolean("a").run(Map("a" -> "true")) == ValidationSuccess(true))
+    assert(boolean("a").run(Map("a" -> "ok")) == ValidationSuccess(true))
+    assert(boolean("a").run(Map("a" -> "1")) == ValidationSuccess(true))
+
+    assert(boolean("a").run(Map("a" -> "foo")) == ValidationFailure("a" -> Seq(ValidationError("boolean"))))
+  }
   test("optional") {
     assert(optional(string("a")).run(params) == ValidationSuccess(Some("1")))
     assert(optional(string("z")).run(params) == ValidationSuccess(None))

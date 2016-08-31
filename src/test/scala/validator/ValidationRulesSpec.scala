@@ -32,4 +32,9 @@ class ValidationRulesSpec extends FunSuite {
     assert(equal("abc").run("abc") == Right("abc"))
     assert(equal("abc").run("a") == Left(ValidationError("equal", Seq("abc"))))
   }
+
+  test("email") {
+    assert(email.run("foo@example.com") == Right("foo@example.com"))
+    assert(email.run("foo") == Left(ValidationError("email")))
+  }
 }

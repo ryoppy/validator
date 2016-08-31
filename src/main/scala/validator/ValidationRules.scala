@@ -50,4 +50,11 @@ trait ValidationRules {
     def apply(x: String) = x == y
   }
 
+  case object email extends ValidationRule[String] {
+    def name = "email"
+
+    // from play framework email constraints
+    private val emailRegex = """^[a-zA-Z0-9\.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$""".r
+    def apply(x: String) = emailRegex.findFirstIn(x).isDefined
+  }
 }

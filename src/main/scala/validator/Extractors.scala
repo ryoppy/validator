@@ -1,7 +1,7 @@
 package validator
 
 trait Extractors {
-  def string(name: String): Extractor[String] = Extractor[String](name, Right(_))
+  def string(name: String): Extractor[String] = Extractor[String](name, x => Right(x.trim))
 
   def int(name: String): Extractor[Int] =
     Extractor[Int](name, x => numberFormat(x, "int", _.toInt))
@@ -22,7 +22,7 @@ trait Extractors {
     Extractor[Byte](name, x => numberFormat(x, "byte", _.toByte))
 
   def boolean(name: String): Extractor[Boolean] =
-    Extractor[Boolean](name, x => isBoolean(x) match {
+    Extractor[Boolean](name, x => isBoolean(x.trim) match {
       case Some(true) => Right(true)
       case Some(false) => Right(false)
       case None => Left(ValidationError("boolean"))
@@ -39,7 +39,7 @@ trait Extractors {
   def seq[A](a: Validation[A]): SeqExtractor[A] = SeqExtractor(a)
 
   private def numberFormat[A](x: String, name: String, f: String => A): Either[ValidationError, A] =
-    try Right(f(x)) catch {
+    try Right(f(x.trim)) catch {
       case e: NumberFormatException => Left(ValidationError(name))
     }
 }
