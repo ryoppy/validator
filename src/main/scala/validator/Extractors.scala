@@ -21,6 +21,19 @@ trait Extractors {
   def byte(name: String): Extractor[Byte] =
     Extractor[Byte](name, x => numberFormat(x, "byte", _.toByte))
 
+  def boolean(name: String): Extractor[Boolean] =
+    Extractor[Boolean](name, x => isBoolean(x) match {
+      case Some(true) => Right(true)
+      case Some(false) => Right(false)
+      case None => Left(ValidationError("boolean"))
+    })
+
+  private def isBoolean(x: String): Option[Boolean] = x.toLowerCase match {
+    case "true" | "1" | "ok" => Some(true)
+    case "false" | "0" | "ng" => Some(false)
+    case _ => None
+  }
+
   def optional[A](a: Validation[A]): OptionExtractor[A] = OptionExtractor(a)
 
   def seq[A](a: Validation[A]): SeqExtractor[A] = SeqExtractor(a)
