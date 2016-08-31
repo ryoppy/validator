@@ -6,16 +6,26 @@ sealed trait ValidationResult[A] {
   def map[B](f: A => B): ValidationResult[B]
 
   def flatMap[B](f: A => ValidationResult[B]): ValidationResult[B]
+
+  def fold[B](f: Seq[ValidationResult.Error] => B, g: A => B): B
+}
+
+object ValidationResult {
+  type Error = (ValidationName, Seq[ValidationError])
 }
 
 final case class ValidationSuccess[A](value: A) extends ValidationResult[A] {
   def map[B](f: A => B): ValidationResult[B] = ValidationSuccess(f(value))
 
   def flatMap[B](f: A => ValidationResult[B]): ValidationResult[B] = f(value)
+
+  def fold[B](f: Seq[ValidationResult.Error] => B, g: A => B): B = g(value)
 }
 
-final case class ValidationFailure[A](errors: (ValidationName, Seq[ValidationError])*) extends ValidationResult[A] {
+final case class ValidationFailure[A](errors: ValidationResult.Error*) extends ValidationResult[A] {
   def map[B](f: A => B): ValidationResult[B] = ValidationFailure[B](errors: _*)
 
   def flatMap[B](f: A => ValidationResult[B]): ValidationResult[B] = ValidationFailure[B](errors: _*)
+
+  def fold[B](f: Seq[ValidationResult.Error] => B, g: A => B): B = f(errors)
 }

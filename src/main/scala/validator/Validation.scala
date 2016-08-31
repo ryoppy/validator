@@ -106,12 +106,11 @@ trait Validation[A] {
     }
 }
 
-object Validation {
+object Validation extends Validation22 {
 
   final implicit class HListValidationOps[L <: HList](val self: Validation[L]) extends AnyVal {
     def as[A](implicit gen: Generic.Aux[A, L]): Validation[A] = self.map(gen.from)
 
     def asTuple(implicit tupler: Tupler[L]): Validation[tupler.Out] = self.map(tupler(_))
   }
-
 }
