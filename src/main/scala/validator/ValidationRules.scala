@@ -18,28 +18,36 @@ trait ValidationRules {
     def apply(x: String) = x.length <= y
   }
 
-  case class min[T: Numeric](y: T) extends ValidationRule[T] {
+  case class min[T](y: T)(implicit ev: Numeric[T]) extends ValidationRule[T] {
     def name = "min"
 
     override def args = Seq(y.toString)
 
-    def apply(x: T) = implicitly[Numeric[T]].gt(x, y)
+    def apply(x: T) = ev.gteq(x, y)
   }
 
-  case class max[T: Numeric](y: T) extends ValidationRule[T] {
+  case class max[T](y: T)(implicit ev: Numeric[T]) extends ValidationRule[T] {
     def name = "max"
 
     override def args = Seq(y.toString)
 
-    def apply(x: T) = implicitly[Numeric[T]].lt(x, y)
+    def apply(x: T) = ev.lteq(x, y)
   }
 
-  case class equiv[T: Numeric](y: T) extends ValidationRule[T] {
-    def name = "eq"
+  case class equiv[T](y: T)(implicit ev: Numeric[T]) extends ValidationRule[T] {
+    def name = "equiv"
 
     override def args = Seq(y.toString)
 
-    def apply(x: T) = implicitly[Numeric[T]].equiv(x, y)
+    def apply(x: T) = ev.equiv(x, y)
+  }
+
+  case class equal(y: String) extends ValidationRule[String] {
+    def name = "equal"
+
+    override def args = Seq(y)
+
+    def apply(x: String) = x == y
   }
 
 }
