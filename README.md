@@ -1,5 +1,7 @@
 # Validator
 
+[![Travis CI](https://travis-ci.org/ryoppy/validator.svg?branch=master)](https://travis-ci.org/ryoppy/validator)
+
 Validator is a Validation library for Scala.
 
 ## Example
@@ -21,11 +23,20 @@ val result2 = validate(Map("a" -> "A", "b" -> "0"), v1)
 assert(result2 == ValidationFailure("b" -> Seq(ValidationError("min", Seq("1")))))
 ```
 
-[more examples](./).
+[more examples](/ryoppy/validator/blob/master/src/test/scala/validator/ExampleSpec.scala).
+
+[tests](/ryoppy/validator/blob/master/src/test/scala/validator).
 
 ## QuickStart
 
+```
+
+```
+
 ## Why?
+
+A Form of playframework is a little bit hard to use.
+22-limits, not composable, etc.
 
 ## License
 

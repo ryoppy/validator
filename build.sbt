@@ -6,6 +6,8 @@ scalaVersion := "2.11.8"
 
 libraryDependencies ++= Seq(
   "com.chuusai" %% "shapeless" % "2.3.2",
+  "joda-time" % "joda-time" % "2.9.4",
+  "org.joda" % "joda-convert" % "1.8",
   "org.scalatest" %% "scalatest" % "2.2.4" % "test"
 )
 

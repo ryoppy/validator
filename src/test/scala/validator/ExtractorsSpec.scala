@@ -26,6 +26,24 @@ class ExtractorsSpec extends FunSuite {
 
     assert(boolean("a").run(Map("a" -> "foo")) == ValidationFailure("a" -> Seq(ValidationError("boolean"))))
   }
+  test("jodaDate") {
+    assert(jodaDateTime("a").run(Map("a" -> "2016-01-01")) == ValidationSuccess(org.joda.time.DateTime.parse("2016-01-01")))
+  }
+  test("jodaLocalDate") {
+    assert(jodaLocalDate("a").run(Map("a" -> "2016-01-01")) == ValidationSuccess(org.joda.time.LocalDate.parse("2016-01-01")))
+  }
+  test("localDate") {
+    assert(localDate("a").run(Map("a" -> "2016-01-01")) == ValidationSuccess(java.time.LocalDate.parse("2016-01-01")))
+  }
+  test("localDateTime") {
+    assert(localDateTime("a").run(Map("a" -> "2016-01-01 01:02:03")) == ValidationSuccess(java.time.LocalDateTime.parse("2016-01-01T01:02:03")))
+  }
+  test("localTime") {
+    assert(localTime("a").run(Map("a" -> "01:02:03")) == ValidationSuccess(java.time.LocalTime.parse("01:02:03")))
+  }
+  test("uuid") {
+    assert(uuid("a").run(Map("a" -> "49b12b2e-3be9-4f20-be03-9fd1ab7919d4")) == ValidationSuccess(java.util.UUID.fromString("49b12b2e-3be9-4f20-be03-9fd1ab7919d4")))
+  }
   test("optional") {
     assert(optional(string("a")).run(params) == ValidationSuccess(Some("1")))
     assert(optional(string("z")).run(params) == ValidationSuccess(None))
