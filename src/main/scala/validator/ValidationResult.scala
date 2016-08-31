@@ -14,7 +14,7 @@ final case class ValidationSuccess[A](value: A) extends ValidationResult[A] {
   def flatMap[B](f: A => ValidationResult[B]): ValidationResult[B] = f(value)
 }
 
-final case class ValidationFailure[A](errors: (ItemName, Seq[ValidationError])*) extends ValidationResult[A] {
+final case class ValidationFailure[A](errors: (ValidationName, Seq[ValidationError])*) extends ValidationResult[A] {
   def map[B](f: A => B): ValidationResult[B] = ValidationFailure[B](errors: _*)
 
   def flatMap[B](f: A => ValidationResult[B]): ValidationResult[B] = ValidationFailure[B](errors: _*)

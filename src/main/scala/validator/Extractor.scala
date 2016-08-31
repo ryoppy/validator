@@ -2,7 +2,7 @@ package validator
 
 import scala.annotation.tailrec
 
-final case class Extractor[A](name: String, extract: String => Either[ValidationError, A]) extends Validation[A] {
+final case class Extractor[A](name: ValidationName, extract: String => Either[ValidationError, A]) extends Validation[A] {
   def apply(value: String): ValidationResult[A] = {
     extract(value) match {
       case Right(x) => ValidationSuccess(x)

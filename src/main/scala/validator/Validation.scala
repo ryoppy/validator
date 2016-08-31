@@ -6,7 +6,7 @@ import shapeless.{Generic, HList}
 trait Validation[A] {
   self =>
 
-  def name: String
+  def name: ValidationName
 
   def apply(params: String): ValidationResult[A]
 
