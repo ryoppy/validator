@@ -25,7 +25,7 @@ val result2 = validate(Map("a" -> "A", "b" -> "0"), v1)
 assert(result2 == ValidationFailure("b" -> Seq(ValidationError("min", Seq("1")))))
 ```
 
-compsing
+composing
 
 ```scala
 val v1: Validation[String] = string("a") is minLength(1)
@@ -52,7 +52,6 @@ val v1: Validation[Foo] = for {
 TOOD: mavenに登録する。
 
 ```
-
 ```
 
 
