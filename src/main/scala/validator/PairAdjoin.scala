@@ -3,6 +3,10 @@ package validator
 import shapeless.ops.adjoin.Adjoin
 import shapeless.{::, DepFn2, HNil}
 
+/*
+ NOTE: https://github.com/finagle/finch/blob/master/core/src/main/scala/io/finch/internal/PairJoin.scala
+ */
+
 /**
  * We need a version of [[shapeless.ops.adjoin.Adjoin]] that provides slightly different behavior in
  * the case of singleton results (we simply return the value, not a singleton `HList`).

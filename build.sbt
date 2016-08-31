@@ -6,7 +6,6 @@ scalaVersion := "2.11.8"
 
 libraryDependencies ++= Seq(
   "com.chuusai" %% "shapeless" % "2.3.2",
-  "com.github.finagle" %% "finch-core" % "0.10.0",
   "org.scalatest" %% "scalatest" % "2.2.4" % "test"
 )
 
