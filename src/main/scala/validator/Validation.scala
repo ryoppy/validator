@@ -21,7 +21,7 @@ trait Validation[A] {
     }
   }
 
-  def addRule(rule: ValidationRule[A]): Validation[A] =
+  private def addRule(rule: ValidationRule[A]): Validation[A] =
     new Validation[A] {
       def name = self.name
 
@@ -35,9 +35,47 @@ trait Validation[A] {
       }
     }
 
-  def is(rule: ValidationRule[A]): Validation[A] = addRule(rule)
+  def is(rule: ValidationRule[A]): Validation[A] =
+    addRule(rule)
 
-  def and(rule: ValidationRule[A]): Validation[A] = addRule(rule)
+  def and(rule: ValidationRule[A]): Validation[A] =
+    addRule(rule)
+
+  def and(ruleName: RuleName)(f: A => Boolean): Validation[A] =
+    addRule(ValidationRule(ruleName)(f))
+
+  private def addRuleWithName(rule: ValidationRule[A], newName: ValidationName): Validation[A] =
+    new Validation[A] {
+      def name = newName
+
+      override def run(params: Map[String, String]): ValidationResult[A] = {
+        self.run(params).flatMap { x =>
+          rule.run(x) match {
+            case Right(y) =>
+              ValidationSuccess(x)
+            case Left(err) =>
+              ValidationFailure[A](newName -> Seq(err))
+          }
+        }
+      }
+
+      override def apply(params: String): ValidationResult[A] = {
+        self(params).flatMap { x =>
+          rule.run(x) match {
+            case Right(y) =>
+              ValidationSuccess(x)
+            case Left(err) =>
+              ValidationFailure[A](newName -> Seq(err))
+          }
+        }
+      }
+    }
+
+  def and(newName: ValidationName, rule: ValidationRule[A]): Validation[A] =
+    addRuleWithName(rule, newName)
+
+  def and(newName: ValidationName, ruleName: RuleName)(f: A => Boolean): Validation[A] =
+    addRuleWithName(ValidationRule(ruleName)(f), newName)
 
   def map[B](f: A => B): Validation[B] =
     new Validation[B] {
@@ -125,7 +163,7 @@ trait Validation[A] {
 
   def rescue[B >: A](pf: PartialFunction[ValidationError, ValidationResult[B]]): Validation[B] = ???
 
-  def withName(newName: ValidationName): Validation[A] = ???
+  def changeName(newName: ValidationName): Validation[A] = ???
 }
 
 object Validation extends Validation22 {
@@ -135,4 +173,5 @@ object Validation extends Validation22 {
 
     def asTuple(implicit tupler: Tupler[L]): Validation[tupler.Out] = self.map(tupler(_))
   }
+
 }
