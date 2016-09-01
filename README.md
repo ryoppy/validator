@@ -1,5 +1,7 @@
 # Validator
 
+**This project is alpha release. Do not use production environments.**
+
 [![Travis CI](https://travis-ci.org/ryoppy/validator.svg?branch=master)](https://travis-ci.org/ryoppy/validator)
 
 Validator is a Validation library for Scala.
@@ -47,13 +49,13 @@ val v1: Validation[Foo] = for {
 
 [tests](src/test/scala/validator).
 
-## QuickStart
+## Install
 
-TOOD: mavenに登録する。
+You can just add the following to your build.
 
 ```
+libraryDependencies += "com.github.ryoppy" %% "validator" % "0.0.1"
 ```
-
 
 ## License
 

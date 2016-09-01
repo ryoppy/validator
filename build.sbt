@@ -1,6 +1,8 @@
 name := """validator"""
 
-version := "1.0"
+organization := "com.github.ryoppy"
+
+version := "0.0.1"
 
 scalaVersion := "2.11.8"
 
@@ -21,3 +23,27 @@ scalacOptions ++= Seq(
   "-Ywarn-unused",
   "-Ywarn-value-discard"
 )
+
+sonatypeProfileName := "com.github.ryoppy"
+
+pomExtra in Global := {
+  <url>http://github.com/ryoppy/validator</url>
+    <licenses>
+      <license>
+        <name>MIT</name>
+        <url>http://github.com/ryoppy/validator/blob/master/LICENSE</url>
+        <distribution>repo</distribution>
+      </license>
+    </licenses>
+    <scm>
+      <url>git@github.com:ryoppy/validator.git</url>
+      <connection>scm:git:git@github.com:ryoppy/validator.git</connection>
+    </scm>
+    <developers>
+      <developer>
+        <id>ryoppy</id>
+        <name>Ryo Hongo</name>
+        <url>https://github.com/ryoppy</url>
+      </developer>
+    </developers>
+}
