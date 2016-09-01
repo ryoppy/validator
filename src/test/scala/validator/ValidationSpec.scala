@@ -63,6 +63,12 @@ class ValidationSpec extends FunSuite {
     assert((int("a") :: int("b")).run(Map("a" -> "A", "b" -> "B")) == ValidationFailure("b" -> Seq(ValidationError("int")), "a" -> Seq(ValidationError("int"))))
   }
 
+  test("|") {
+    assert((int("a") | int("b")).run(Map("a" -> "1", "b" -> "2")) == ValidationSuccess(1))
+    assert((int("a") | int("b")).run(Map("a" -> "A", "b" -> "2")) == ValidationSuccess(2))
+    assert((int("a") | int("b")).run(Map("a" -> "A", "b" -> "B")) == ValidationFailure("b" -> Seq(ValidationError("int"))))
+  }
+
   test("as") {
     case class Foo(a: String, b: String)
     assert((string("a") :: string("b")).as[Foo].run(Map("a" -> "A", "b" -> "B")) == ValidationSuccess(Foo("A", "B")))

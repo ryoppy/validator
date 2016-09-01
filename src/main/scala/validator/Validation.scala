@@ -39,8 +39,6 @@ trait Validation[A] {
 
   def and(rule: ValidationRule[A]): Validation[A] = addRule(rule)
 
-  def transform[B](f: A => ValidationResult[B]): Validation[B] = ???
-
   def map[B](f: A => B): Validation[B] =
     new Validation[B] {
       def name = self.name
@@ -104,6 +102,30 @@ trait Validation[A] {
         }
       }
     }
+
+  def orElse[B >: A](that: Validation[B]): Validation[B] = {
+    new Validation[B] {
+      def name = self.name
+
+      override protected def findValue(params: Map[String, String]): Seq[String] = self.findValue(params)
+
+      override def run(params: Map[String, String]): ValidationResult[B] =
+        self.run(params).orElse(that.run(params))
+
+      def apply(params: String): ValidationResult[B] =
+        self(params).orElse(that(params))
+    }
+  }
+
+  def |[B >: A](that: Validation[B]): Validation[B] = orElse(that)
+
+  def transform[B](f: A => ValidationResult[B]): Validation[B] = ???
+
+  def lift: Validation[Option[A]] = ???
+
+  def rescue[B >: A](pf: PartialFunction[ValidationError, ValidationResult[B]]): Validation[B] = ???
+
+  def withName(newName: ValidationName): Validation[A] = ???
 }
 
 object Validation extends Validation22 {

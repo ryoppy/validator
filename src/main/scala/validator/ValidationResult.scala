@@ -7,6 +7,8 @@ sealed trait ValidationResult[A] {
 
   def flatMap[B](f: A => ValidationResult[B]): ValidationResult[B]
 
+  def orElse[B >: A](that: ValidationResult[B]): ValidationResult[B]
+
   def fold[B](f: Seq[ValidationResult.Error] => B, g: A => B): B
 }
 
@@ -19,6 +21,8 @@ final case class ValidationSuccess[A](value: A) extends ValidationResult[A] {
 
   def flatMap[B](f: A => ValidationResult[B]): ValidationResult[B] = f(value)
 
+  def orElse[B >: A](that: ValidationResult[B]): ValidationResult[B] = ValidationSuccess(value)
+
   def fold[B](f: Seq[ValidationResult.Error] => B, g: A => B): B = g(value)
 }
 
@@ -26,6 +30,8 @@ final case class ValidationFailure[A](errors: ValidationResult.Error*) extends V
   def map[B](f: A => B): ValidationResult[B] = ValidationFailure[B](errors: _*)
 
   def flatMap[B](f: A => ValidationResult[B]): ValidationResult[B] = ValidationFailure[B](errors: _*)
+
+  def orElse[B >: A](that: ValidationResult[B]): ValidationResult[B] = that
 
   def fold[B](f: Seq[ValidationResult.Error] => B, g: A => B): B = f(errors)
 }
