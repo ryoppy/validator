@@ -29,6 +29,10 @@ trait ValidationRule[A] {
     }
   }
 
+  def and(f: A => Boolean): ValidationRule[A] = and(ValidationRule(self.name)(f))
+
+  def and(andName: RuleName)(f: A => Boolean): ValidationRule[A] = and(ValidationRule(andName)(f))
+
   def withMessage(msg: String): ValidationRule[A] = new ValidationRule[A] {
     override def name: RuleName = self.name
 

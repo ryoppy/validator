@@ -57,4 +57,13 @@ trait ValidationRules {
     private val emailRegex = """^[a-zA-Z0-9\.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$""".r
     def apply(x: String) = emailRegex.findFirstIn(x).isDefined
   }
+
+  // I wonder if it should use Eq type class...
+  case class same[A](y: A) extends ValidationRule[A] {
+    def name = "same"
+
+    override def args = Seq(y.toString)
+
+    def apply(x: A) = x == y
+  }
 }

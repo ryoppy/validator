@@ -26,12 +26,18 @@ final case class ValidationSuccess[A](value: A) extends ValidationResult[A] {
   def fold[B](f: Seq[ValidationResult.Error] => B, g: A => B): B = g(value)
 }
 
-final case class ValidationFailure[A](errors: ValidationResult.Error*) extends ValidationResult[A] {
-  def map[B](f: A => B): ValidationResult[B] = ValidationFailure[B](errors: _*)
+final case class ValidationFailure[A](errors: Seq[ValidationResult.Error]) extends ValidationResult[A] {
+  def map[B](f: A => B): ValidationResult[B] = ValidationFailure[B](errors)
 
-  def flatMap[B](f: A => ValidationResult[B]): ValidationResult[B] = ValidationFailure[B](errors: _*)
+  def flatMap[B](f: A => ValidationResult[B]): ValidationResult[B] = ValidationFailure[B](errors)
 
   def orElse[B >: A](that: ValidationResult[B]): ValidationResult[B] = that
 
   def fold[B](f: Seq[ValidationResult.Error] => B, g: A => B): B = f(errors)
+}
+
+object ValidationFailure {
+  def of[A](errors: ValidationResult.Error*): ValidationFailure[A] = {
+    ValidationFailure(errors)
+  }
 }

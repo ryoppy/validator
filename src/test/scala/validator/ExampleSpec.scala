@@ -15,7 +15,7 @@ class ExampleSpec extends FunSuite {
     assert(result == ValidationSuccess(Foo("A", 1)))
 
     val result2 = validate(Map("a" -> "A", "b" -> "0"), v1)
-    assert(result2 == ValidationFailure("b" -> Seq(ValidationError("min", Seq("1")))))
+    assert(result2 == ValidationFailure.of("b" -> Seq(ValidationError("min", Seq("1")))))
   }
 
   test("example2 - tuple") {

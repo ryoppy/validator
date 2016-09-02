@@ -41,7 +41,7 @@ for-comprehension
 ```scala
 val v1: Validation[Foo] = for {
   a <- string("a") is minLength(1)
-  b <- int("a") is min(1)
+  b <- int("b") is min(1)
 } yield Foo(a, b)
 ```
 
@@ -54,7 +54,7 @@ val v1: Validation[Foo] = for {
 You can just add the following to your build.
 
 ```
-libraryDependencies += "com.github.ryoppy" %% "validator" % "0.0.1"
+libraryDependencies += "com.github.ryoppy" %% "validator" % "0.0.2"
 ```
 
 ## License

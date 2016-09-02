@@ -6,7 +6,7 @@ final case class Extractor[A](name: ValidationName, extract: String => Either[Va
   def apply(value: String): ValidationResult[A] = {
     extract(value) match {
       case Right(x) => ValidationSuccess(x)
-      case Left(e) => ValidationFailure(name -> Seq(e))
+      case Left(e) => ValidationFailure.of(name -> Seq(e))
     }
   }
 }
