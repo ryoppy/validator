@@ -21,7 +21,7 @@ trait Validation[A] {
     }
   }
 
-  private def addRule(rule: ValidationRule[A]): Validation[A] =
+  def addRule(rule: ValidationRule[A]): Validation[A] =
     new Validation[A] {
       def name = self.name
 
@@ -226,4 +226,35 @@ object Validation extends Validation22 {
     def asTuple(implicit tupler: Tupler[L]): Validation[tupler.Out] = self.map(tupler(_))
   }
 
+  final implicit class OptionValidationOps[A](val self: Validation[Option[A]]) extends AnyVal {
+    def is(rule: ValidationRule[A]): Validation[Option[A]] = addRule(rule)
+
+    def and(rule: ValidationRule[A]): Validation[Option[A]] = addRule(rule)
+
+    def addRule(rule: ValidationRule[A]): Validation[Option[A]] =
+      new Validation[Option[A]] {
+        def name = self.name
+
+        override def run(params: Map[String, String]): ValidationResult[Option[A]] = {
+          self.findValue(params) match {
+            case Nil =>
+              ValidationSuccess(None)
+            case value +: _ =>
+              apply(value)
+          }
+        }
+
+        override def apply(params: String): ValidationResult[Option[A]] = {
+          self(params).flatMap {
+            case Some(x) =>
+              rule.run(x) match {
+                case Right(r) => ValidationSuccess(Some(r))
+                case Left(e) => ValidationFailure.of(name -> Seq(e))
+              }
+            case None =>
+              ValidationSuccess(None: Option[A])
+          }
+        }
+      }
+  }
 }
