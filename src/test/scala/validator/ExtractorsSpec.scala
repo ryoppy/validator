@@ -54,7 +54,15 @@ class ExtractorsSpec extends FunSuite {
     assert(seq(string("a")).run(Map("a[0]" -> "1", "a[1]" -> "2")) == ValidationSuccess(Seq("1", "2")))
     assert(seq(string("b")).run(Map("a[0]" -> "1", "a[1]" -> "2")) == ValidationSuccess(Nil))
 
-    assert(seq(int("a")).run(Map("a[0]" -> Long.MaxValue.toString)) == ValidationFailure.of("a" -> Seq(ValidationError("int"))))
+    assert(seq(int("a")).run(Map("a[0]" -> Long.MaxValue.toString)) == ValidationFailure.of("a[0]" -> Seq(ValidationError("int"))))
+    assert(seq(int("a")).run(Map("a[0]" -> "1", "a[1]" -> Long.MaxValue.toString)) == ValidationFailure.of("a[1]" -> Seq(ValidationError("int"))))
+    assert(seq(int("a")).run(Map("a[0]" -> Long.MaxValue.toString, "a[1]" -> Long.MaxValue.toString)) == ValidationFailure.of("a[0]" -> Seq(ValidationError("int")), "a[1]" -> Seq(ValidationError("int"))))
+  }
+  test("set") {
+    assert(set(string("a")).run(Map("a[0]" -> "1", "a[1]" -> "1")) == ValidationSuccess(Set("1")))
+    assert(set(string("b")).run(Map("a[0]" -> "1", "a[1]" -> "2")) == ValidationSuccess(Set()))
+
+    assert(set(int("a")).run(Map("a[0]" -> Long.MaxValue.toString)) == ValidationFailure.of("a[0]" -> Seq(ValidationError("int"))))
   }
   test("apply") {
     assert(string("a").apply("1") == ValidationSuccess("1"))

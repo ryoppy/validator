@@ -2,6 +2,7 @@ package validator
 
 import java.util.{TimeZone, UUID}
 
+import scala.collection.generic.CanBuildFrom
 import scala.util.control.NonFatal
 
 trait Extractors {
@@ -106,7 +107,15 @@ trait Extractors {
 
   def optional[A](a: Validation[A]): OptionExtractor[A] = OptionExtractor(a)
 
-  def seq[A](a: Validation[A]): SeqExtractor[A] = SeqExtractor(a)
+  def seq[A](a: Validation[A])(implicit cbf: CanBuildFrom[Nothing, A, Seq[A]]): SeqExtractor[Seq, A] = SeqExtractor[Seq, A](a, cbf)
+
+  def list[A](a: Validation[A])(implicit cbf: CanBuildFrom[Nothing, A, List[A]]): SeqExtractor[List, A] = SeqExtractor[List, A](a, cbf)
+
+  def set[A](a: Validation[A])(implicit cbf: CanBuildFrom[Nothing, A, Set[A]]): SeqExtractor[Set, A] = SeqExtractor[Set, A](a, cbf)
+
+  def vector[A](a: Validation[A])(implicit cbf: CanBuildFrom[Nothing, A, Vector[A]]): SeqExtractor[Vector, A] = SeqExtractor[Vector, A](a, cbf)
+
+  def stream[A](a: Validation[A])(implicit cbf: CanBuildFrom[Nothing, A, Stream[A]]): SeqExtractor[Stream, A] = SeqExtractor[Stream, A](a, cbf)
 
   private def numberFormat[A](x: String, name: String, f: String => A): Either[ValidationError, A] =
     try Right(f(x.trim)) catch {

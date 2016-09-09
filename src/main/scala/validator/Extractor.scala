@@ -1,6 +1,8 @@
 package validator
 
 import scala.annotation.tailrec
+import scala.collection.generic.CanBuildFrom
+import scala.language.higherKinds
 
 final case class Extractor[A](name: ValidationName, extract: String => Either[ValidationError, A]) extends Validation[A] {
   def apply(value: String): ValidationResult[A] = {
@@ -28,7 +30,8 @@ final case class OptionExtractor[A](a: Validation[A]) extends Validation[Option[
   }
 }
 
-final case class SeqExtractor[A](a: Validation[A]) extends Validation[Seq[A]] {
+final case class SeqExtractor[C[_], A](a: Validation[A],
+                                       cbf: CanBuildFrom[Nothing, A, C[A]]) extends Validation[C[A]] {
   def name = a.name
 
   def indexes(key: String, data: Map[String, String]): Seq[Int] = {
@@ -40,20 +43,36 @@ final case class SeqExtractor[A](a: Validation[A]) extends Validation[Seq[A]] {
     indexes(name, params).flatMap { i => params.get(s"$name[$i]") }
   }
 
-  override def run(params: Map[String, String]): ValidationResult[Seq[A]] = {
+  override def run(params: Map[String, String]): ValidationResult[C[A]] = {
+    val xs: Seq[ValidationResult[A]] = findValue(params).map(a.apply)
+
     @tailrec
-    def f(xs: Seq[ValidationResult[A]], acc: ValidationResult[Seq[A]]): ValidationResult[Seq[A]] = {
-      xs match {
-        case x +: t =>
-          f(t, for { xv <- x; av <- acc } yield xv +: av)
+    def f(ys: Seq[ValidationResult[A]],
+          i: Int,
+          su: Seq[A],
+          fa: Seq[ValidationResult.Error]): (Seq[A], Seq[ValidationResult.Error]) = {
+      ys match {
+        case ValidationSuccess(h) +: t =>
+          f(t, i + 1, h +: su, fa)
+        case ValidationFailure((name, e) +: _) +: t =>
+          f(t, i + 1, su, (s"$name[$i]", e) +: fa)
         case Nil =>
-          acc
+          (su.reverse, fa.reverse)
       }
     }
-    f(findValue(params).map(a.apply), ValidationSuccess(Nil)).map(_.reverse)
+    f(xs, 0, Nil, Nil) match {
+      case (su, Nil) =>
+        ValidationSuccess((cbf() ++= su).result)
+      case (_, Seq(fa @ _*)) =>
+        ValidationFailure(fa)
+    }
   }
   
-  def apply(value: String): ValidationResult[Seq[A]] = {
-    a.apply(value).map(Seq(_))
+  def apply(value: String): ValidationResult[C[A]] = {
+    val builder = cbf.apply
+    a.apply(value).map { x =>
+      builder += x
+      builder.result
+    }
   }
 }
