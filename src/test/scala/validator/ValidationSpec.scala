@@ -126,6 +126,12 @@ class ValidationSpec extends FunSuite {
         == ValidationSuccess("B"))
   }
 
+  test("filter") {
+    val v1 = string("a").filter(a => a == "Foo", ValidationError("foo"))
+    assert(v1.run(Map("a" -> "Foo")) == ValidationSuccess("Foo"))
+    assert(v1.run(Map("a" -> "Bar")) == ValidationFailure.of("a" -> Seq(ValidationError("foo"))))
+  }
+
   test("optional is/and") {
     val v1 = optional(string("a")) is minLength(1) and maxLength(3)
     assert(v1.run(Map("a" -> "A")) == ValidationSuccess(Some("A")))

@@ -118,6 +118,12 @@ trait Validation[A] {
         self.addRule(ValidationRule(name)(p)).apply(params)
     }
 
+  def filter(f: A => Boolean, e: ValidationError): Validation[A] =
+    self.transform { a =>
+      if (f(a)) ValidationSuccess(a)
+      else ValidationFailure.of(self.name -> Seq(e))
+    }
+
   def ::[B](next: Validation[B])(implicit pa: PairAdjoin[B, A]): Validation[pa.Out] =
     new Validation[pa.Out] {
       def name = next.name
