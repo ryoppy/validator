@@ -57,7 +57,7 @@ class ExampleSpec extends FunSuite {
     assert(result == ValidationSuccess(3.1))
   }
 
-  test("example5 - complex") {
+  test("example5 - condition") {
     val v1: Validation[String] = boolean("flag").flatMap { flag =>
       if (flag) string("a") is equal("A")
       else string("b") is equal("B")
@@ -68,5 +68,42 @@ class ExampleSpec extends FunSuite {
 
     val result2 = validate(Map("flag" -> "false", "a" -> "Z", "b" -> "B"), v1)
     assert(result2 == ValidationSuccess("B"))
+  }
+
+  test("example6 - enum") {
+    // Enum base classes
+    trait Enum {
+      type Value
+      def value: Value
+    }
+    trait EnumCompanion[A <: Enum] {
+      def valueOf(i: Byte): Option[A]
+    }
+
+    // My Enum classes
+    sealed class Status(val value: Byte) extends Enum { type Value = Byte }
+    case object Ok extends Status(0)
+    case object Ng extends Status(1)
+
+    object Status extends EnumCompanion[Status] {
+      def valueOf(i: Byte): Option[Status] =
+        if (i == 0) Some(Ok)
+        else if (i == 1) Some(Ng)
+        else None
+    }
+
+    // Defined Validation[Enum]
+    def enum[A <: Enum](name: String, ec: EnumCompanion[A]): Validation[A] = {
+      byte(name).map(ec.valueOf).transform {
+        case Some(status) => ValidationSuccess(status)
+        case None => ValidationFailure.of(name -> Seq(ValidationError("enum")))
+      }
+    }
+
+    // run
+    val v1 = enum("status", Status)
+    assert(v1.run(Map("status" -> "0")) == ValidationSuccess(Ok))
+    assert(v1.run(Map("status" -> "1")) == ValidationSuccess(Ng))
+    assert(v1.run(Map("status" -> "2")) == ValidationFailure.of("status" -> Seq(ValidationError("enum"))))
   }
 }
