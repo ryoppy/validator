@@ -54,7 +54,26 @@ val v1: Validation[Foo] = for {
 You can just add the following to your build.
 
 ```
-libraryDependencies += "com.github.ryoppy" %% "validator-core" % "0.0.2"
+libraryDependencies += "com.github.ryoppy" %% "validator-core" % "0.0.1"
+```
+
+## Playframework support
+
+You can add the following to your build.
+
+```
+libraryDependencies += "com.github.ryoppy" %% "validator-playframework" % "0.0.1"
+```
+
+You can write like this.
+
+```
+import validator.playframework.requestSupport
+
+def index = Action { req =>
+  val v1 = int("id") is min(1)
+  validate(req, v1)
+}
 ```
 
 ## License

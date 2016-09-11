@@ -1,7 +1,3 @@
-name := """validator"""
-
-version := "0.0.2"
-
 lazy val compilerOptions = Seq(
   scalacOptions ++= Seq(
     "-deprecation",
