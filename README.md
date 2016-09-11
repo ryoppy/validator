@@ -54,7 +54,7 @@ val v1: Validation[Foo] = for {
 You can just add the following to your build.
 
 ```
-libraryDependencies += "com.github.ryoppy" %% "validator" % "0.0.2"
+libraryDependencies += "com.github.ryoppy" %% "validator-core" % "0.0.2"
 ```
 
 ## License

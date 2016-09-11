@@ -1,6 +1,6 @@
 name := """validator"""
 
-version := "0.0.3"
+version := "0.0.2"
 
 lazy val compilerOptions = Seq(
   scalacOptions ++= Seq(
@@ -49,11 +49,11 @@ lazy val core = project.in(file("core"))
   )
   .settings(allSettings: _*)
 
-lazy val play = project.in(file("play"))
+lazy val playframework = project.in(file("playframework"))
   .settings(
-    description := "validator play",
-    moduleName := "validator-play",
-    name := "play"
+    description := "validator playframework",
+    moduleName := "validator-playframework",
+    name := "playframework"
   )
   .settings(allSettings: _*)
   .settings(libraryDependencies ++= Seq(
@@ -61,7 +61,7 @@ lazy val play = project.in(file("play"))
   ))
   .dependsOn(core)
 
-lazy val aggregatedProjects = Seq[ProjectReference](core, play)
+lazy val aggregatedProjects = Seq[ProjectReference](core, playframework)
 
 lazy val noPublishSettings = Seq(
   publish := (),

@@ -5,7 +5,7 @@ package validator
  * GET and POST parameters are subject to this.
   *
  * {{{
- * import validator.play.supportRequest
+ * import validator.playframework.requestSupport
  *
  * def index = Action { req =>
  *   val v1 = int("id") is min(1)
@@ -13,5 +13,5 @@ package validator
  * }
  * }}}
  */
-package object play extends RequestSupport {
+package object playframework extends RequestSupport {
 }
