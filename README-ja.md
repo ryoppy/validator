@@ -25,21 +25,21 @@ case class Foo(a: String, b: Int)
 
 val v1: Validation[Foo] = Validation(
   string("a") is minLength(1),
-  int("b") is min(1) and max(3)
+  int("b") is between(1, 3)
 ).as[Foo]
 
 val result = validate(Map("a" -> "A", "b" -> "1"), v1)
 assert(result == ValidationSuccess(Foo("A", 1)))
 
 val result2 = validate(Map("a" -> "A", "b" -> "0"), v1)
-assert(result2 == ValidationFailure("b" -> Seq(ValidationError("min", Seq("1")))))
+assert(result2 == ValidationFailure("b" -> Seq(ValidationError("between", Seq("1", "3")))))
 ```
 
 合成
 
 ```scala
 val v1: Validation[String] = string("a") is minLength(1)
-val v2: Validation[Int] = int("a") is min(1)
+val v2: Validation[Int] = int("a") is lessThan(1)
 val v3: Validation[Foo] = (v1 :: v2).as[Foo]
 val v4: Validation[(String, Int)] = (v1 :: v2).asTuple
 ```
@@ -49,7 +49,7 @@ for式
 ```scala
 val v1: Validation[Foo] = for {
   a <- string("a") is minLength(1)
-  b <- int("b") is min(1)
+  b <- int("b") is lessThan(1)
 } yield Foo(a, b)
 ```
 

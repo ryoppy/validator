@@ -35,13 +35,13 @@ class ValidationSpec extends FunSuite {
     case class Foo(a: String, b: Int)
     val v2 = Validation(
       string("a") is minLength(1),
-      int("b") is min(1)
+      int("b") is greaterThanEq(1)
     ).as[Foo]
       .and("foo", "foo is A1") { foo => foo.a == "A" && foo.b == 1 }
 
     assert(v2.run(Map("a" -> "A", "b" -> "1")) == ValidationSuccess(Foo("A", 1)))
     assert(v2.run(Map("a" -> "B", "b" -> "1")) == ValidationFailure.of("foo" -> Seq(ValidationError("foo is A1"))))
-    assert(v2.run(Map("a" -> "A", "b" -> "0")) == ValidationFailure.of("b" -> Seq(ValidationError("min", Seq("1")))))
+    assert(v2.run(Map("a" -> "A", "b" -> "0")) == ValidationFailure.of("b" -> Seq(ValidationError("greaterThanEq", Seq("1")))))
   }
 
   test("map") {
@@ -112,7 +112,7 @@ class ValidationSpec extends FunSuite {
   }
 
   test("changeName") {
-    assert(((string("a") is equal("A")) | string("b") is equal("B")).changeName("b", "NewName").run(Map("a" -> "1", "b" -> "2")) == ValidationFailure.of("NewName" -> Seq(ValidationError("equal", Seq("B")))))
+    assert(((string("a") is equiv("A")) | string("b") is equiv("B")).changeName("b", "NewName").run(Map("a" -> "1", "b" -> "2")) == ValidationFailure.of("NewName" -> Seq(ValidationError("equiv", Seq("B")))))
   }
 
   test("changeRuleName") {
@@ -121,7 +121,7 @@ class ValidationSpec extends FunSuite {
   }
 
   test("rescue") {
-    assert(string("a").is(equal("B"))
+    assert(string("a").is(equiv("B"))
       .rescue { case ValidationFailure(xs) if xs.exists { case (name, _) => name == "a" } => ValidationSuccess("B") }.run(Map("a" -> "A"))
         == ValidationSuccess("B"))
   }

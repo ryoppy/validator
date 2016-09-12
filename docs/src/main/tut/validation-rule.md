@@ -19,13 +19,21 @@ val a: ValidationRule[Int] = min(0)
 
 - minLength
 - maxLength
-- equal
+- exactLength
 - email
+- ip
+- ip4
+- ip6
+- url
+- regex
 
-### Numeric
+### Numeric | DateTime
 
-- min
-- max
+- lessThan
+- greaterThan
+- lessThanEq
+- greaterThanEq
+- between
 - equiv
 
 ### Others

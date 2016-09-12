@@ -18,8 +18,8 @@ class ValidationRuleSpec extends FunSuite {
     assert(minLength(3).and(maxLength(5)).run("abcde") == Right("abcde"))
     assert(minLength(3).and(maxLength(5)).run("abcdef") == Left(ValidationError("maxLength", Seq("5"))))
     assert(minLength(3).and(maxLength(5)).run("ab") == Left(ValidationError("minLength", Seq("3"))))
-    assert(minLength(3).and(maxLength(5).and(equal("foo"))).run("foo") == Right("foo"))
-    assert(minLength(3).and(maxLength(5).and(equal("foo"))).run("fooz") == Left(ValidationError("equal", Seq("foo"))))
+    assert(minLength(3).and(maxLength(5).and(equiv("foo"))).run("foo") == Right("foo"))
+    assert(minLength(3).and(maxLength(5).and(equiv("foo"))).run("fooz") == Left(ValidationError("equiv", Seq("foo"))))
   }
 
   test("withMessage") {

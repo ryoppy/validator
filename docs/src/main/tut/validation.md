@@ -15,8 +15,8 @@ val a: Validation[Int] = int("a")
 and, it has `ValidationRule[A]`.
 
 ```
-val min0: ValidationRule[Int] = min(0)
-val a: Validation[Int] = int("a") is min0
+val between03: ValidationRule[Int] = between(0, 3)
+val a: Validation[Int] = int("a") is between03
 ```
 
 ## Types
