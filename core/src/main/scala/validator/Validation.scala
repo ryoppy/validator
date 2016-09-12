@@ -222,6 +222,8 @@ trait Validation[A] {
           { e => PartialFunction.condOpt(ValidationFailure[A](e))(pf).getOrElse(ValidationFailure[B](e)) }, { x => ValidationSuccess(x) }
         )
     }
+
+  def flatMapWith(f: (Validation[A], A) => Validation[A]): Validation[A] = self.flatMap { x => f(self, x) }
 }
 
 object Validation extends Validation22 {

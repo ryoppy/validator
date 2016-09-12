@@ -139,4 +139,10 @@ class ValidationSpec extends FunSuite {
     assert(v1.run(Map("a" -> "")) == ValidationFailure.of("a" -> Seq(ValidationError("minLength", Seq("1")))))
     assert(v1.run(Map("a" -> "AAAA")) == ValidationFailure.of("a" -> Seq(ValidationError("maxLength", Seq("3")))))
   }
+
+  test("flatMapWith") {
+    def newRule(x: String) = ValidationRule[String]("newRule") { _ == x }
+    val v1 = string("a") flatMapWith { (v, x) => v is newRule(x) }
+    assert(v1.run(Map("a" -> "A")) == ValidationSuccess("A"))
+  }
 }

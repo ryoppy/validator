@@ -1,22 +1,22 @@
 # Validator
 
-[日本語](README-ja.md)
+[English](README.md)
 
-## This project is alpha release. Do not use production environments.
+## まだアルファ版です。
 
 [![Travis CI](https://travis-ci.org/ryoppy/validator.svg?branch=master)](https://travis-ci.org/ryoppy/validator)
 
-Validator is a Validation library for Scala.
+ValidatorはScalaでバリデーションするライブラリです。
 
-## Install
+## インストール
 
-You can just add the following to your build.
+下の依存をbuild.sbt等に入れてください。
 
 ```
 libraryDependencies += "com.github.ryoppy" %% "validator-core" % "0.0.1"
 ```
 
-## Example
+## 例
 
 ```scala
 import validator._
@@ -35,7 +35,7 @@ val result2 = validate(Map("a" -> "A", "b" -> "0"), v1)
 assert(result2 == ValidationFailure("b" -> Seq(ValidationError("min", Seq("1")))))
 ```
 
-composing
+合成
 
 ```scala
 val v1: Validation[String] = string("a") is minLength(1)
@@ -44,7 +44,7 @@ val v3: Validation[Foo] = (v1 :: v2).as[Foo]
 val v4: Validation[(String, Int)] = (v1 :: v2).asTuple
 ```
 
-for-comprehension
+for式
 
 ```scala
 val v1: Validation[Foo] = for {
@@ -53,11 +53,11 @@ val v1: Validation[Foo] = for {
 } yield Foo(a, b)
 ```
 
-[more examples](core/src/test/scala/validator/ExampleSpec.scala).
+[他の例](core/src/test/scala/validator/ExampleSpec.scala).
 
-[tests](core/src/test/scala/validator).
+[テストケース](core/src/test/scala/validator).
 
-## Playframework Example
+## Playframeworkの例
 
 ```
 // POST
@@ -67,11 +67,11 @@ validate(req.body.asFormUrlEncoded, v1)
 validate(req.queryString, v1)
 ```
 
-validate method is able to received `Map[String, Seq[String]]` or [something](core/src/main/scala/validator/ValidationValue.scala).
+validateメソッドは、`Map[String, Seq[String]]`[等](core/src/main/scala/validator/ValidationValue.scala)受け取れます。
 
-## Why?
+## なぜ作ったのか?
 
-A Playframework Form class is not composable, and 22 limit. so I made this library.
+playframeworkのFormクラスは合成できなかったり22の制限があるとか色々あるので。
 
 ## License
 
