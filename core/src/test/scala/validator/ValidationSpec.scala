@@ -132,14 +132,6 @@ class ValidationSpec extends FunSuite {
     assert(v1.run(Map("a" -> "Bar")) == ValidationFailure.of("a" -> Seq(ValidationError("foo"))))
   }
 
-  test("optional is/and") {
-    val v1 = optional(string("a")) is minLength(1) and maxLength(3)
-    assert(v1.run(Map("a" -> "A")) == ValidationSuccess(Some("A")))
-    assert(v1.run(Map()) == ValidationSuccess(None))
-    assert(v1.run(Map("a" -> "")) == ValidationFailure.of("a" -> Seq(ValidationError("minLength", Seq("1")))))
-    assert(v1.run(Map("a" -> "AAAA")) == ValidationFailure.of("a" -> Seq(ValidationError("maxLength", Seq("3")))))
-  }
-
   test("flatMapWith") {
     def newRule(x: String) = ValidationRule[String]("newRule") { _ == x }
     val v1 = string("a") flatMapWith { (v, x) => v is newRule(x) }
