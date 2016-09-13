@@ -6,6 +6,24 @@ import scala.util.Try
 
 trait ValidationRules {
 
+  case object notEmpty extends ValidationRule[String] {
+    def name = "notEmpty"
+
+    def apply(x: String) = x != ""
+  }
+
+  case object alpha extends ValidationRule[String] {
+    def name = "alpha"
+
+    def apply(x: String) = x.forall(Character.isLetter)
+  }
+
+  case object alphaNum extends ValidationRule[String] {
+    def name = "alphaNum"
+
+    def apply(x: String) = x.forall(Character.isLetterOrDigit)
+  }
+
   case class minLength(y: Int) extends ValidationRule[String] {
     def name = "minLength"
 

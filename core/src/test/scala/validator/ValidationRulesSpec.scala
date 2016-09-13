@@ -1,9 +1,23 @@
 package validator
 
-import org.joda.time.{DateTime, DateTimeZone}
 import org.scalatest._
 
 class ValidationRulesSpec extends FunSuite {
+  test("notEmpty") {
+    assert(notEmpty.run("abc") == Right("abc"))
+    assert(notEmpty.run("") == Left(ValidationError("notEmpty")))
+  }
+
+  test("alpha") {
+    assert(alpha.run("abc") == Right("abc"))
+    assert(alpha.run("abc.") == Left(ValidationError("alpha")))
+  }
+
+  test("alphaNum") {
+    assert(alphaNum.run("abc123") == Right("abc123"))
+    assert(alphaNum.run("abc123.") == Left(ValidationError("alphaNum")))
+  }
+
   test("minLength") {
     assert(minLength(3).run("abc") == Right("abc"))
     assert(minLength(3).run("ab") == Left(ValidationError("minLength", Seq("3"))))
