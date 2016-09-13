@@ -1,5 +1,6 @@
 package validator
 
+import org.joda.time.{DateTime, DateTimeZone}
 import org.scalatest._
 
 class ValidationRulesSpec extends FunSuite {
@@ -26,7 +27,7 @@ class ValidationRulesSpec extends FunSuite {
   test("ip") {
     assert(ip.run("127.0.0.1") == Right("127.0.0.1"))
     assert(ip.run("::1") == Right("::1"))
-    assert(ip.run("abc") == Left(ValidationError("ip")))
+    assert(ip.run("IPアドレス") == Left(ValidationError("ip")))
   }
 
   test("ip4") {
@@ -90,13 +91,13 @@ class ValidationRulesSpec extends FunSuite {
   }
 
   test("datetime ordering") {
-    import org.joda.time.DateTime
-    val now = new DateTime("2016-01-01")
+    import java.time.LocalDateTime
+    val now = LocalDateTime.parse("2016-01-01T00:00:00")
 
     assert(lessThanEq(now).run(now) == Right(now))
     assert(lessThanEq(now.plusDays(1)).run(now) == Right(now)) // now <= (now + 1)
     assert(lessThanEq(now.minusDays(1)).run(now) ==
-      Left(ValidationError("lessThanEq", Seq("2015-12-31T00:00:00.000+09:00")))) // now <= (now - 1)
+      Left(ValidationError("lessThanEq", Seq("2015-12-31T00:00")))) // now <= (now - 1)
 
     assert(equiv(now).run(now) == Right(now))
   }
