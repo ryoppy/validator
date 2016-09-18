@@ -89,16 +89,6 @@ class ValidationSpec extends FunSuite {
     assert(string("a").transform(a => ValidationFailure.of[String]("a" -> Seq(ValidationError("fuga")))).run(Map("a" -> "A", "b" -> "A")) == ValidationFailure.of("a" -> Seq(ValidationError("fuga"))))
   }
 
-  test("changeName") {
-    val v1 = (string("a") is equiv("A")) | (string("b") is equiv("B"))
-    assert(v1.changeName("b", "NewName").run(Map("a" -> "1", "b" -> "2")) == ValidationFailure.of("a" -> Seq(ValidationError("equiv", Seq("A"))), "NewName" -> Seq(ValidationError("equiv", Seq("B")))))
-  }
-
-  test("changeRuleName") {
-    assert((string("a") sameValue string("b")).run(Map("a" -> "A", "b" -> "B")) == ValidationFailure.of("b" -> Seq(ValidationError("same", Seq("A")))))
-    assert((string("a") sameValue string("b") changeRuleName("b", "same", "this is not same values!")).run(Map("a" -> "A", "b" -> "B")) == ValidationFailure.of("b" -> Seq(ValidationError("this is not same values!", Seq("A")))))
-  }
-
   test("rescue") {
     assert(string("a").is(equiv("B"))
       .rescue { case ValidationFailure(xs) if xs.exists { case (name, _) => name == "a" } => ValidationSuccess("B") }.run(Map("a" -> "A"))
@@ -111,9 +101,9 @@ class ValidationSpec extends FunSuite {
     assert(v1.run(Map("a" -> "Bar")) == ValidationFailure.of("a" -> Seq(ValidationError("foo"))))
   }
 
-  test("flatMapWith") {
+  test("addRuleSelf") {
     def newRule(x: String) = ValidationRule[String]("newRule") { _ == x }
-    val v1 = string("a") flatMapWith { (v, x) => v is newRule(x) }
+    val v1 = string("a") addRuleSelf { (v, x) => v is newRule(x) }
     assert(v1.run(Map("a" -> "A")) == ValidationSuccess("A"))
   }
 }

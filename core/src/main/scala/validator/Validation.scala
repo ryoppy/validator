@@ -33,6 +33,8 @@ trait Validation[A] {
 
   def and(f: A => Boolean): Validation[A] = addRule(ValidationRule(self.name)(f))
 
+  def addRuleSelf(f: (Validation[A], A) => Validation[A]): Validation[A] = self.flatMap { x => f(self, x) }
+
   def map[B](f: A => B): Validation[B] =
     new Validation[B] {
       def name = self.name
@@ -108,35 +110,6 @@ trait Validation[A] {
       def apply(x: String): ValidationResult[B] = self(x).flatMap(f)
     }
 
-  def changeName(fromName: ValidationName, toName: ValidationName): Validation[A] =
-    rescue[A] {
-      case failure@ValidationFailure(errors) =>
-        ValidationFailure[A](
-          errors.map {
-            case (name, e) if name == fromName => (toName, e)
-            case a => a
-          }
-        )
-    }
-
-  def changeRuleName(currentName: ValidationName, 
-                     fromRuleName: RuleName, 
-                     toRuleName: RuleName): Validation[A] =
-    rescue[A] {
-      case failure@ValidationFailure(errors) =>
-        ValidationFailure[A](
-          errors.map {
-            case (name, e) if name == currentName =>
-              (name, e.map { case ValidationError(ruleName, args) if ruleName == fromRuleName => 
-                ValidationError(toRuleName, args) })
-            case a => a
-          }
-        )
-    }
-
-  def changeRuleName(fromRuleName: RuleName, toRuleName: RuleName): Validation[A] =
-    changeRuleName(self.name, fromRuleName, toRuleName)
-
   def rescue[B >: A](pf: PartialFunction[ValidationFailure[A], ValidationResult[B]]): Validation[B] =
     new Validation[B] {
       def name = self.name
@@ -153,8 +126,6 @@ trait Validation[A] {
           { x => ValidationSuccess(x) }
         )
     }
-
-  def flatMapWith(f: (Validation[A], A) => Validation[A]): Validation[A] = self.flatMap { x => f(self, x) }
 }
 
 object Validation extends Validation22 {
