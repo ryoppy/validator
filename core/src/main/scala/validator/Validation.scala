@@ -80,8 +80,21 @@ trait Validation[A] {
   def orElse[B >: A](that: Validation[B]): Validation[B] =
     new Validation[B] {
       def name = that.name
-      def run(xs: Map[String, String]): ValidationResult[B] = self.run(xs).orElse(that.run(xs))
-      def apply(x: String): ValidationResult[B] = self(x).orElse(that(x))
+      def run(xs: Map[String, String]): ValidationResult[B] = merge(self.run(xs), that.run(xs))
+      def apply(x: String): ValidationResult[B] = merge(self(x), that(x))
+
+      private def merge(r1: ValidationResult[A], r2: ValidationResult[B]): ValidationResult[B] = {
+        (r1, r2) match {
+          case (ValidationSuccess(x1), ValidationSuccess(x2)) =>
+            ValidationSuccess(x1)
+          case (ValidationSuccess(x1), ValidationFailure(e2)) =>
+            ValidationFailure(e2)
+          case (ValidationFailure(e1), ValidationSuccess(x2)) =>
+            ValidationFailure(e1)
+          case (ValidationFailure(e1), ValidationFailure(e2)) =>
+            ValidationFailure(e1 ++ e2)
+        }
+      }
     }
 
   def |[B >: A](that: Validation[B]): Validation[B] = orElse(that)

@@ -65,8 +65,8 @@ class ValidationSpec extends FunSuite {
 
   test("|") {
     assert((int("a") | int("b")).run(Map("a" -> "1", "b" -> "2")) == ValidationSuccess(1))
-    assert((int("a") | int("b")).run(Map("a" -> "A", "b" -> "2")) == ValidationSuccess(2))
-    assert((int("a") | int("b")).run(Map("a" -> "A", "b" -> "B")) == ValidationFailure.of("b" -> Seq(ValidationError("int"))))
+    assert((int("a") | int("b")).run(Map("a" -> "A", "b" -> "2")) == ValidationFailure.of("a" -> Seq(ValidationError("int"))))
+    assert((int("a") | int("b")).run(Map("a" -> "A", "b" -> "B")) == ValidationFailure.of("a" -> Seq(ValidationError("int")), "b" -> Seq(ValidationError("int"))))
   }
 
   test("as") {
@@ -90,7 +90,8 @@ class ValidationSpec extends FunSuite {
   }
 
   test("changeName") {
-    assert(((string("a") is equiv("A")) | string("b") is equiv("B")).changeName("b", "NewName").run(Map("a" -> "1", "b" -> "2")) == ValidationFailure.of("NewName" -> Seq(ValidationError("equiv", Seq("B")))))
+    val v1 = (string("a") is equiv("A")) | (string("b") is equiv("B"))
+    assert(v1.changeName("b", "NewName").run(Map("a" -> "1", "b" -> "2")) == ValidationFailure.of("a" -> Seq(ValidationError("equiv", Seq("A"))), "NewName" -> Seq(ValidationError("equiv", Seq("B")))))
   }
 
   test("changeRuleName") {
