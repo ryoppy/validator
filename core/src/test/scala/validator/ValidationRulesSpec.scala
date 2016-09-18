@@ -104,6 +104,12 @@ class ValidationRulesSpec extends FunSuite {
     assert(same("B").run("A") == Left(ValidationError("same", Seq("B"))))
   }
 
+  test("contains") {
+    assert(contains("A", "B").run("A") == Right("A"))
+    assert(contains("A", "B").run("B") == Right("B"))
+    assert(contains("A", "B").run("C") == Left(ValidationError("contains", Seq("A", "B"))))
+  }
+
   test("datetime ordering") {
     import java.time.LocalDateTime
     val now = LocalDateTime.parse("2016-01-01T00:00:00")

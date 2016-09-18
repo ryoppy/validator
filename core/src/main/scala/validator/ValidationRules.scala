@@ -150,12 +150,23 @@ trait ValidationRules {
     def apply(x: T) = ev.equiv(x, y)
   }
 
+
+  // -- General
+
   case class same[A](y: A) extends ValidationRule[A] {
     def name = "same"
 
     override def args = Seq(y.toString)
 
     def apply(x: A) = x == y
+  }
+
+  case class contains[A](y: A*) extends ValidationRule[A] {
+    def name = "contains"
+
+    override def args = y.map(_.toString)
+
+    def apply(x: A) = y.contains(x)
   }
 
 
