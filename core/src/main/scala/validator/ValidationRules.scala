@@ -150,7 +150,6 @@ trait ValidationRules {
     def apply(x: T) = ev.equiv(x, y)
   }
 
-  // I wonder if it should use Eq type class...
   case class same[A](y: A) extends ValidationRule[A] {
     def name = "same"
 

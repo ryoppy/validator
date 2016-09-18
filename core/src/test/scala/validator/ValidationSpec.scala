@@ -20,28 +20,6 @@ class ValidationSpec extends FunSuite {
     assert((string("a") is minLength(1) and maxLength(3)).apply("abc") == ValidationSuccess("abc"))
     assert((string("a") is minLength(2) and maxLength(3)).apply("a") == ValidationFailure.of("a" -> Seq(ValidationError("minLength", Seq("2")))))
     assert((string("a") is minLength(2) and maxLength(3)).apply("abcd") == ValidationFailure.of("a" -> Seq(ValidationError("maxLength", Seq("3")))))
-
-    val v1 = string("a").and("newName", "newRuleName") { a => a == "NEW" }
-    assert(v1.apply("NEW") == ValidationSuccess("NEW"))
-    assert(v1.apply("FOO") == ValidationFailure.of("newName" -> Seq(ValidationError("newRuleName"))))
-  }
-
-  test("add new validation rules") {
-    val v1 = string("a").is(maxLength(1)).and("a is A") { a => a == "A" }
-    assert(v1("A") == ValidationSuccess("A"))
-    assert(v1("B") == ValidationFailure.of("a" -> Seq(ValidationError("a is A"))))
-    assert(v1("BC") == ValidationFailure.of("a" -> Seq(ValidationError("maxLength", Seq("1")))))
-
-    case class Foo(a: String, b: Int)
-    val v2 = Validation(
-      string("a") is minLength(1),
-      int("b") is greaterThanEq(1)
-    ).as[Foo]
-      .and("foo", "foo is A1") { foo => foo.a == "A" && foo.b == 1 }
-
-    assert(v2.run(Map("a" -> "A", "b" -> "1")) == ValidationSuccess(Foo("A", 1)))
-    assert(v2.run(Map("a" -> "B", "b" -> "1")) == ValidationFailure.of("foo" -> Seq(ValidationError("foo is A1"))))
-    assert(v2.run(Map("a" -> "A", "b" -> "0")) == ValidationFailure.of("b" -> Seq(ValidationError("greaterThanEq", Seq("1")))))
   }
 
   test("map") {

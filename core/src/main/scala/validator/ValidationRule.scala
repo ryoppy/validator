@@ -16,9 +16,9 @@ trait ValidationRule[A] {
   }
 
   def and(next: ValidationRule[A]): ValidationRule[A] = new ValidationRule[A] {
-    override def name: RuleName = next.name
+    def name: RuleName = next.name
 
-    override def apply(x: A): Boolean = self(x) && next(x)
+    def apply(x: A): Boolean = self(x) && next(x)
 
     override def args: Seq[String] = next.args
 
@@ -34,9 +34,9 @@ trait ValidationRule[A] {
   def and(andName: RuleName)(f: A => Boolean): ValidationRule[A] = and(ValidationRule(andName)(f))
 
   def withMessage(msg: String): ValidationRule[A] = new ValidationRule[A] {
-    override def name: RuleName = self.name
+    def name: RuleName = self.name
 
-    override def apply(x: A): Boolean = self(x)
+    def apply(x: A): Boolean = self(x)
 
     override def args: Seq[String] = self.args
 

@@ -8,115 +8,48 @@ trait Validation[A] {
 
   def name: ValidationName
 
-  def apply(params: String): ValidationResult[A]
+  def apply(x: String): ValidationResult[A]
 
-  protected def findValue(params: Map[String, String]): Seq[String] = params.get(name).toSeq
-
-  def run(params: Map[String, String]): ValidationResult[A] = {
-    findValue(params) match {
-      case Nil =>
-        ValidationFailure.of(name -> Seq(ValidationError("required")))
-      case value +: _ =>
-        self(value)
-    }
-  }
+  def run(xs: Map[String, String]): ValidationResult[A]
 
   def addRule(rule: ValidationRule[A]): Validation[A] =
     new Validation[A] {
       def name = self.name
+      def apply(x: String): ValidationResult[A] = self(x).flatMap(runRule)
+      def run(xs: Map[String, String]): ValidationResult[A] = self.run(xs).flatMap(runRule)
 
-      override def apply(params: String): ValidationResult[A] = {
-        self(params).flatMap { x =>
-          rule.run(x) match {
-            case Right(r) => ValidationSuccess(r)
-            case Left(e) => ValidationFailure.of(name -> Seq(e))
-          }
+      private def runRule(x: A): ValidationResult[A] =
+        rule.run(x) match {
+          case Right(r) => ValidationSuccess(r)
+          case Left(e) => ValidationFailure.of(name -> Seq(e))
         }
-      }
     }
 
-  def is(rule: ValidationRule[A]): Validation[A] =
-    addRule(rule)
+  def is(rule: ValidationRule[A]): Validation[A] = addRule(rule)
 
-  def and(rule: ValidationRule[A]): Validation[A] =
-    addRule(rule)
+  def and(rule: ValidationRule[A]): Validation[A] = addRule(rule)
 
-  def and(ruleName: RuleName)(f: A => Boolean): Validation[A] =
-    addRule(ValidationRule(ruleName)(f))
+  def and(ruleName: RuleName)(f: A => Boolean): Validation[A] = addRule(ValidationRule(ruleName)(f))
 
-  def and(f: A => Boolean): Validation[A] =
-    addRule(ValidationRule(self.name)(f))
-
-  private def addRuleWithName(rule: ValidationRule[A], newName: ValidationName): Validation[A] =
-    new Validation[A] {
-      def name = newName
-
-      override def run(params: Map[String, String]): ValidationResult[A] = {
-        self.run(params).flatMap { x =>
-          rule.run(x) match {
-            case Right(y) =>
-              ValidationSuccess(x)
-            case Left(err) =>
-              ValidationFailure.of[A](newName -> Seq(err))
-          }
-        }
-      }
-
-      override def apply(params: String): ValidationResult[A] = {
-        self(params).flatMap { x =>
-          rule.run(x) match {
-            case Right(y) =>
-              ValidationSuccess(x)
-            case Left(err) =>
-              ValidationFailure.of[A](newName -> Seq(err))
-          }
-        }
-      }
-    }
-
-  def and(newName: ValidationName, rule: ValidationRule[A]): Validation[A] =
-    addRuleWithName(rule, newName)
-
-  def and(newName: ValidationName, ruleName: RuleName)(f: A => Boolean): Validation[A] =
-    addRuleWithName(ValidationRule(ruleName)(f), newName)
+  def and(f: A => Boolean): Validation[A] = addRule(ValidationRule(self.name)(f))
 
   def map[B](f: A => B): Validation[B] =
     new Validation[B] {
       def name = self.name
-
-      override protected def findValue(params: Map[String, String]): Seq[String] = self.findValue(params)
-
-      override def run(params: Map[String, String]): ValidationResult[B] = self.run(params).map(f)
-
-      def apply(params: String): ValidationResult[B] =
-        self(params).map(f)
+      def run(xs: Map[String, String]): ValidationResult[B] = self.run(xs).map(f)
+      def apply(x: String): ValidationResult[B] = self(x).map(f)
     }
 
   def flatMap[B](f: A => Validation[B]): Validation[B] =
     new Validation[B] {
       def name = self.name
-
-      override protected def findValue(params: Map[String, String]): Seq[String] = self.findValue(params)
-
-      override def run(params: Map[String, String]): ValidationResult[B] =
-        self.run(params).flatMap(a => f(a).run(params))
-
-      def apply(params: String): ValidationResult[B] =
-        self(params).flatMap(a => f(a).apply(params))
+      def run(xs: Map[String, String]): ValidationResult[B] = self.run(xs).flatMap(a => f(a).run(xs))
+      def apply(x: String): ValidationResult[B] = self(x).flatMap(a => f(a).apply(x))
     }
 
-  def withFilter(p: A => Boolean): Validation[A] =
-    new Validation[A] {
-      def name = self.name
+  def withFilter(f: A => Boolean): Validation[A] = filter(f)
 
-      override protected def findValue(params: Map[String, String]): Seq[String] = self.findValue(params)
-
-      override def run(params: Map[String, String]): ValidationResult[A] =
-        self.addRule(ValidationRule(name)(p)).run(params)
-
-      def apply(params: String): ValidationResult[A] =
-        self.addRule(ValidationRule(name)(p)).apply(params)
-    }
+  def filter(f: A => Boolean): Validation[A] = filter(f, ValidationError(self.name))
 
   def filter(f: A => Boolean, e: ValidationError): Validation[A] =
     self.transform { a =>
@@ -127,14 +60,8 @@ trait Validation[A] {
   def ::[B](next: Validation[B])(implicit pa: PairAdjoin[B, A]): Validation[pa.Out] =
     new Validation[pa.Out] {
       def name = next.name
-
-      override protected def findValue(params: Map[String, String]): Seq[String] = next.findValue(params)
-
-      override def run(params: Map[String, String]): ValidationResult[pa.Out] =
-        merge(self.run(params), next.run(params))
-
-      def apply(params: String): ValidationResult[pa.Out] =
-        merge(self(params), next(params))
+      def run(xs: Map[String, String]): ValidationResult[pa.Out] = merge(self.run(xs), next.run(xs))
+      def apply(x: String): ValidationResult[pa.Out] = merge(self(x), next(x))
 
       private def merge(v1: ValidationResult[A], v2: ValidationResult[B]): ValidationResult[pa.Out] = {
         (v1, v2) match {
@@ -153,14 +80,8 @@ trait Validation[A] {
   def orElse[B >: A](that: Validation[B]): Validation[B] =
     new Validation[B] {
       def name = that.name
-
-      override protected def findValue(params: Map[String, String]): Seq[String] = self.findValue(params)
-
-      override def run(params: Map[String, String]): ValidationResult[B] =
-        self.run(params).orElse(that.run(params))
-
-      def apply(params: String): ValidationResult[B] =
-        self(params).orElse(that(params))
+      def run(xs: Map[String, String]): ValidationResult[B] = self.run(xs).orElse(that.run(xs))
+      def apply(x: String): ValidationResult[B] = self(x).orElse(that(x))
     }
 
   def |[B >: A](that: Validation[B]): Validation[B] = orElse(that)
@@ -170,14 +91,8 @@ trait Validation[A] {
   def transform[B](f: A => ValidationResult[B]): Validation[B] =
     new Validation[B] {
       def name = self.name
-
-      override protected def findValue(params: Map[String, String]): Seq[String] = self.findValue(params)
-
-      override def run(params: Map[String, String]): ValidationResult[B] =
-        self.run(params).flatMap(f)
-
-      def apply(params: String): ValidationResult[B] =
-        self(params).flatMap(f)
+      def run(xs: Map[String, String]): ValidationResult[B] = self.run(xs).flatMap(f)
+      def apply(x: String): ValidationResult[B] = self(x).flatMap(f)
     }
 
   def changeName(fromName: ValidationName, toName: ValidationName): Validation[A] =
@@ -191,13 +106,16 @@ trait Validation[A] {
         )
     }
 
-  def changeRuleName(currentName: ValidationName, fromRuleName: RuleName, toRuleName: RuleName): Validation[A] =
+  def changeRuleName(currentName: ValidationName, 
+                     fromRuleName: RuleName, 
+                     toRuleName: RuleName): Validation[A] =
     rescue[A] {
       case failure@ValidationFailure(errors) =>
         ValidationFailure[A](
           errors.map {
             case (name, e) if name == currentName =>
-              (name, e.map { case ValidationError(ruleName, args) if ruleName == fromRuleName => ValidationError(toRuleName, args) })
+              (name, e.map { case ValidationError(ruleName, args) if ruleName == fromRuleName => 
+                ValidationError(toRuleName, args) })
             case a => a
           }
         )
@@ -210,16 +128,16 @@ trait Validation[A] {
     new Validation[B] {
       def name = self.name
 
-      override protected def findValue(params: Map[String, String]): Seq[String] = self.findValue(params)
-
-      override def run(params: Map[String, String]): ValidationResult[B] =
-        self.run(params).fold(
-          { e => PartialFunction.condOpt(ValidationFailure[A](e))(pf).getOrElse(ValidationFailure[B](e)) }, { x => ValidationSuccess(x) }
+      def run(xs: Map[String, String]): ValidationResult[B] =
+        self.run(xs).fold(
+          { e => PartialFunction.condOpt(ValidationFailure[A](e))(pf).getOrElse(ValidationFailure[B](e)) }, 
+          { x => ValidationSuccess(x) }
         )
 
-      def apply(params: String): ValidationResult[B] =
-        self(params).fold(
-          { e => PartialFunction.condOpt(ValidationFailure[A](e))(pf).getOrElse(ValidationFailure[B](e)) }, { x => ValidationSuccess(x) }
+      def apply(x: String): ValidationResult[B] =
+        self(x).fold(
+          { e => PartialFunction.condOpt(ValidationFailure[A](e))(pf).getOrElse(ValidationFailure[B](e)) }, 
+          { x => ValidationSuccess(x) }
         )
     }
 
