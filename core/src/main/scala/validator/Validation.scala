@@ -21,7 +21,7 @@ trait Validation[A] {
       private def runRule(x: A): ValidationResult[A] =
         rule.run(x) match {
           case Right(r) => ValidationSuccess(r)
-          case Left(e) => ValidationFailure.of(name -> Seq(e))
+          case Left(e) => ValidationFailure.of(name -> e.toSeq)
         }
     }
 

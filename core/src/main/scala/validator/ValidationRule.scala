@@ -11,21 +11,26 @@ trait ValidationRule[A] {
 
   def message: Option[String] = None
 
-  def run(x: A): Either[ValidationError, A] = {
-    if (self(x)) Right(x) else Left(ValidationError(message.getOrElse(name), args))
+  def run(x: A): Either[Set[ValidationError], A] = {
+    if (self(x)) Right(x) else Left(Set(ValidationError(message.getOrElse(name), args)))
   }
 
-  def and(next: ValidationRule[A]): ValidationRule[A] = new ValidationRule[A] {
-    def name: RuleName = next.name
+  def and(that: ValidationRule[A]): ValidationRule[A] = new ValidationRule[A] {
+    def name: RuleName = that.name
 
-    def apply(x: A): Boolean = self(x) && next(x)
+    def apply(x: A): Boolean = self(x) && that(x)
 
-    override def args: Seq[String] = next.args
+    override def args: Seq[String] = that.args
 
-    override def message: Option[String] = next.message
+    override def message: Option[String] = that.message
 
-    override def run(x: A): Either[ValidationError, A] = {
-      self.run(x).right.flatMap(_ => next.run(x))
+    override def run(x: A): Either[Set[ValidationError], A] = {
+      (self.run(x), that.run(x)) match {
+        case (Right(_), Right(_)) => Right(x)
+        case (Left(e1), Left(e2)) => Left(e1 ++ e2)
+        case (Left(e1), _) => Left(e1)
+        case (_, Left(e2)) => Left(e2)
+      }
     }
   }
 
@@ -42,8 +47,8 @@ trait ValidationRule[A] {
 
     override def message: Option[String] = Some(msg)
 
-    override def run(x: A): Either[ValidationError, A] = {
-      if (self(x)) Right(x) else Left(ValidationError(message.getOrElse(name), args))
+    override def run(x: A): Either[Set[ValidationError], A] = {
+      if (self(x)) Right(x) else Left(Set(ValidationError(message.getOrElse(name), args)))
     }
   }
 }
