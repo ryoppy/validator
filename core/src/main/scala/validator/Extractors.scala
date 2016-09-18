@@ -4,9 +4,15 @@ import java.util.{TimeZone, UUID}
 
 import scala.collection.generic.CanBuildFrom
 import scala.util.control.NonFatal
+import Extractors.trim
+
+object Extractors {
+  val isAutoTrim = new java.util.concurrent.atomic.AtomicBoolean(true)
+  def trim(x: String): String = if (isAutoTrim.get()) x.trim else x
+}
 
 trait Extractors {
-  def string(name: String): Extractor[String] = Extractor[String](name, x => Right(x.trim))
+  def string(name: String): Extractor[String] = Extractor[String](name, x => Right(trim(x)))
 
   def int(name: String): Extractor[Int] =
     Extractor[Int](name, x => numberFormat(x, "int", _.toInt))
@@ -117,13 +123,15 @@ trait Extractors {
 
   def stream[A](a: Validation[A])(implicit cbf: CanBuildFrom[Nothing, A, Stream[A]]): SeqExtractor[Stream, A] = SeqExtractor[Stream, A](a, cbf)
 
-  private def numberFormat[A](x: String, name: String, f: String => A): Either[ValidationError, A] =
-    try Right(f(x.trim)) catch {
-      case e: NumberFormatException => Left(ValidationError(name))
-    }
+  private def numberFormat[A](x: String, name: String, f: String => A): Either[ValidationError, A] = {
+    val y = trim(x)
+    if (y == "") Left(ValidationError("required"))
+    else try Right(f(y)) catch { case e: NumberFormatException => Left(ValidationError(name)) }
+  }
 
-  private def tryCatch[A](x: String, name: String, f: String => A): Either[ValidationError, A] =
-    try Right(f(x.trim)) catch {
-      case NonFatal(_) => Left(ValidationError(name))
-    }
+  private def tryCatch[A](x: String, name: String, f: String => A): Either[ValidationError, A] = {
+    val y = trim(x)
+    if (y == "") Left(ValidationError("required"))
+    else try Right(f(trim(x))) catch { case NonFatal(_) => Left(ValidationError(name)) }
+  }
 }

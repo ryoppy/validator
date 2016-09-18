@@ -6,8 +6,8 @@ import scala.util.Try
 
 trait ValidationRules {
 
-  case object notEmpty extends ValidationRule[String] {
-    def name = "notEmpty"
+  case object required extends ValidationRule[String] {
+    def name = "required"
 
     def apply(x: String) = x != ""
   }

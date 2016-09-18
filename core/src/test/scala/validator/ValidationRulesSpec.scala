@@ -3,9 +3,9 @@ package validator
 import org.scalatest._
 
 class ValidationRulesSpec extends FunSuite {
-  test("notEmpty") {
-    assert(notEmpty.run("abc") == Right("abc"))
-    assert(notEmpty.run("") == Left(ValidationError("notEmpty")))
+  test("required") {
+    assert(required.run("abc") == Right("abc"))
+    assert(required.run("") == Left(ValidationError("required")))
   }
 
   test("alpha") {
