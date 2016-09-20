@@ -1,7 +1,7 @@
 package validator
 
 import org.scalatest._
-import shapeless.HNil
+import shapeless.{:+:, CNil, HNil, Inl, Inr}
 
 class ValidationSpec extends FunSuite {
   val params = Map("a" -> "1")
@@ -63,9 +63,21 @@ class ValidationSpec extends FunSuite {
     assert((int("a") :: int("b")).run(Map("a" -> "A", "b" -> "B")) == ValidationFailure.of("b" -> Seq(ValidationError("int")), "a" -> Seq(ValidationError("int"))))
   }
 
+  test(":+:") {
+    val v1 = int("a") :+: float("b") :+: double("c")
+    assert(v1.run(Map("a" -> "1", "b" -> "2", "c" -> "3")) == ValidationSuccess(Inl(1)))
+    assert(v1.run(Map("a" -> "A", "b" -> "2", "c" -> "3")) == ValidationSuccess(Inr(Inl(2f))))
+    assert(v1.run(Map("a" -> "A", "b" -> "B", "c" -> "3")) == ValidationSuccess(Inr(Inr(Inl(3d)))))
+    assert(v1.run(Map("a" -> "A", "b" -> "B", "c" -> "C")) == ValidationFailure(Seq(
+      "a" -> Seq(ValidationError("int")),
+      "b" -> Seq(ValidationError("float")),
+      "c" -> Seq(ValidationError("double"))
+    )))
+  }
+
   test("|") {
     assert((int("a") | int("b")).run(Map("a" -> "1", "b" -> "2")) == ValidationSuccess(1))
-    assert((int("a") | int("b")).run(Map("a" -> "A", "b" -> "2")) == ValidationFailure.of("a" -> Seq(ValidationError("int"))))
+    assert((int("a") | int("b")).run(Map("a" -> "A", "b" -> "2")) == ValidationSuccess(2))
     assert((int("a") | int("b")).run(Map("a" -> "A", "b" -> "B")) == ValidationFailure.of("a" -> Seq(ValidationError("int")), "b" -> Seq(ValidationError("int"))))
   }
 

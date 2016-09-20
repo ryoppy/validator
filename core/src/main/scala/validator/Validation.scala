@@ -1,7 +1,8 @@
 package validator
 
+import shapeless.ops.adjoin.Adjoin
 import shapeless.ops.hlist.Tupler
-import shapeless.{Generic, HList}
+import shapeless.{:+:, CNil, Generic, HList, Inl, Inr}
 
 trait Validation[A] {
   self =>
@@ -79,6 +80,10 @@ trait Validation[A] {
       }
     }
 
+  def :+:[B](that: Validation[B])(implicit a: Adjoin[B :+: A :+: CNil]): Validation[a.Out] =
+    that.map(x => a(Inl[B, A :+: CNil](x))) |
+    self.map(x => a(Inr[B, A :+: CNil](Inl[A, CNil](x))))
+
   def orElse[B >: A](that: Validation[B]): Validation[B] =
     new Validation[B] {
       def name = that.name
@@ -87,12 +92,10 @@ trait Validation[A] {
 
       private def merge(r1: ValidationResult[A], r2: ValidationResult[B]): ValidationResult[B] = {
         (r1, r2) match {
-          case (ValidationSuccess(x1), ValidationSuccess(x2)) =>
+          case (ValidationSuccess(x1), _) =>
             ValidationSuccess(x1)
-          case (ValidationSuccess(x1), ValidationFailure(e2)) =>
-            ValidationFailure(e2)
-          case (ValidationFailure(e1), ValidationSuccess(x2)) =>
-            ValidationFailure(e1)
+          case (_, ValidationSuccess(x2)) =>
+            ValidationSuccess(x2)
           case (ValidationFailure(e1), ValidationFailure(e2)) =>
             ValidationFailure(e1 ++ e2)
         }

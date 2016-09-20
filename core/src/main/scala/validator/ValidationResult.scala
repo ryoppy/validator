@@ -23,8 +23,8 @@ sealed trait ValidationResult[A] {
    * {{{
    *   // example use play i18n
    *   def f(ruleName: String, args: Seq[String]): Option[String] =
-   *     play.api.libs.i18n.Messages(ruleName, args:_*)
-   *   
+   *     Some(play.api.libs.i18n.Messages(ruleName, args:_*))
+   *
    *   result.translateErrors(f)
    * }}}
    */
