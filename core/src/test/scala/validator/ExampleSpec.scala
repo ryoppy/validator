@@ -106,4 +106,16 @@ class ExampleSpec extends FunSuite {
     assert(v1.run(Map("status" -> "1")) == ValidationSuccess(Ng))
     assert(v1.run(Map("status" -> "2")) == ValidationFailure.of("status" -> Seq(ValidationError("enum"))))
   }
+
+  test("example7 - or") {
+    import shapeless.{:+:, Inl, Inr, CNil}
+
+    val v1 = string("a") is minLength(1)
+    val v2 = int("b") is equiv(2)
+    val v3 = double("c") is equiv(3)
+    val v: Validation[String :+: Int :+: Double :+: CNil] = v1 :+: v2 :+: v3
+    val result = v.run(Map("a" -> "", "b" -> "2", "c" -> "3"))
+    assert(result == ValidationSuccess(Inr(Inl(2))))
+    assert(result.value.flatMap(_.select[Int]) == Some(2))
+  }
 }
