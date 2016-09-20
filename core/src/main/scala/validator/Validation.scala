@@ -13,7 +13,7 @@ trait Validation[A] {
 
   def run(xs: Map[String, String]): ValidationResult[A]
 
-  def addRule(rule: ValidationRule[A]): Validation[A] =
+  final def addRule(rule: ValidationRule[A]): Validation[A] =
     new Validation[A] {
       def name = self.name
       def apply(x: String): ValidationResult[A] = self(x).flatMap(runRule)
@@ -26,41 +26,41 @@ trait Validation[A] {
         }
     }
 
-  def is(rule: ValidationRule[A]): Validation[A] = addRule(rule)
+  final def is(rule: ValidationRule[A]): Validation[A] = addRule(rule)
 
-  def and(rule: ValidationRule[A]): Validation[A] = addRule(rule)
+  final def and(rule: ValidationRule[A]): Validation[A] = addRule(rule)
 
-  def and(ruleName: RuleName)(f: A => Boolean): Validation[A] = addRule(ValidationRule(ruleName)(f))
+  final def and(ruleName: RuleName)(f: A => Boolean): Validation[A] = addRule(ValidationRule(ruleName)(f))
 
-  def and(f: A => Boolean): Validation[A] = addRule(ValidationRule(self.name)(f))
+  final def and(f: A => Boolean): Validation[A] = addRule(ValidationRule(self.name)(f))
 
-  def addRuleSelf(f: (Validation[A], A) => Validation[A]): Validation[A] = self.flatMap { x => f(self, x) }
+  final def addRuleSelf(f: (Validation[A], A) => Validation[A]): Validation[A] = self.flatMap { x => f(self, x) }
 
-  def map[B](f: A => B): Validation[B] =
+  final def map[B](f: A => B): Validation[B] =
     new Validation[B] {
       def name = self.name
       def run(xs: Map[String, String]): ValidationResult[B] = self.run(xs).map(f)
       def apply(x: String): ValidationResult[B] = self(x).map(f)
     }
 
-  def flatMap[B](f: A => Validation[B]): Validation[B] =
+  final def flatMap[B](f: A => Validation[B]): Validation[B] =
     new Validation[B] {
       def name = self.name
       def run(xs: Map[String, String]): ValidationResult[B] = self.run(xs).flatMap(a => f(a).run(xs))
       def apply(x: String): ValidationResult[B] = self(x).flatMap(a => f(a).apply(x))
     }
 
-  def withFilter(f: A => Boolean): Validation[A] = filter(f)
+  final def withFilter(f: A => Boolean): Validation[A] = filter(f)
 
-  def filter(f: A => Boolean): Validation[A] = filter(f, ValidationError(self.name))
+  final def filter(f: A => Boolean): Validation[A] = filter(f, ValidationError(self.name))
 
-  def filter(f: A => Boolean, e: ValidationError): Validation[A] =
+  final def filter(f: A => Boolean, e: ValidationError): Validation[A] =
     self.transform { a =>
       if (f(a)) ValidationSuccess(a)
       else ValidationFailure.of(self.name -> Seq(e))
     }
 
-  def ::[B](next: Validation[B])(implicit pa: PairAdjoin[B, A]): Validation[pa.Out] =
+  final def ::[B](next: Validation[B])(implicit pa: PairAdjoin[B, A]): Validation[pa.Out] =
     new Validation[pa.Out] {
       def name = next.name
       def run(xs: Map[String, String]): ValidationResult[pa.Out] = merge(self.run(xs), next.run(xs))
@@ -80,11 +80,11 @@ trait Validation[A] {
       }
     }
 
-  def :+:[B](that: Validation[B])(implicit a: Adjoin[B :+: A :+: CNil]): Validation[a.Out] =
+  final def :+:[B](that: Validation[B])(implicit a: Adjoin[B :+: A :+: CNil]): Validation[a.Out] =
     that.map(x => a(Inl[B, A :+: CNil](x))) |
     self.map(x => a(Inr[B, A :+: CNil](Inl[A, CNil](x))))
 
-  def orElse[B >: A](that: Validation[B]): Validation[B] =
+  final def orElse[B >: A](that: Validation[B]): Validation[B] =
     new Validation[B] {
       def name = that.name
       def run(xs: Map[String, String]): ValidationResult[B] = merge(self.run(xs), that.run(xs))
@@ -102,18 +102,18 @@ trait Validation[A] {
       }
     }
 
-  def |[B >: A](that: Validation[B]): Validation[B] = orElse(that)
+  final def |[B >: A](that: Validation[B]): Validation[B] = orElse(that)
 
-  def sameValue(that: Validation[A]): Validation[A] = self.flatMap { a => that is same(a) }
+  final def sameValue(that: Validation[A]): Validation[A] = self.flatMap { a => that is same(a) }
 
-  def transform[B](f: A => ValidationResult[B]): Validation[B] =
+  final def transform[B](f: A => ValidationResult[B]): Validation[B] =
     new Validation[B] {
       def name = self.name
       def run(xs: Map[String, String]): ValidationResult[B] = self.run(xs).flatMap(f)
       def apply(x: String): ValidationResult[B] = self(x).flatMap(f)
     }
 
-  def rescue[B >: A](pf: PartialFunction[ValidationFailure[A], ValidationResult[B]]): Validation[B] =
+  final def rescue[B >: A](pf: PartialFunction[ValidationFailure[A], ValidationResult[B]]): Validation[B] =
     new Validation[B] {
       def name = self.name
 
