@@ -116,17 +116,13 @@ trait Validation[A] {
   final def rescue[B >: A](pf: PartialFunction[ValidationFailure[A], ValidationResult[B]]): Validation[B] =
     new Validation[B] {
       def name = self.name
+      def run(xs: Map[String, String]): ValidationResult[B] = runRescue(self.run(xs))
+      def apply(x: String): ValidationResult[B] = runRescue(self(x))
 
-      def run(xs: Map[String, String]): ValidationResult[B] =
-        self.run(xs).fold(
-          { e => PartialFunction.condOpt(ValidationFailure[A](e))(pf).getOrElse(ValidationFailure[B](e)) }, 
-          { x => ValidationSuccess(x) }
-        )
-
-      def apply(x: String): ValidationResult[B] =
-        self(x).fold(
-          { e => PartialFunction.condOpt(ValidationFailure[A](e))(pf).getOrElse(ValidationFailure[B](e)) }, 
-          { x => ValidationSuccess(x) }
+      private def runRescue(r: ValidationResult[A]): ValidationResult[B] =
+        r.fold(
+          e => PartialFunction.condOpt(ValidationFailure[A](e))(pf).getOrElse(ValidationFailure[B](e)),
+          ValidationSuccess(_)
         )
     }
 }
