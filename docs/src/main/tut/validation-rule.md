@@ -10,13 +10,16 @@
 A `ValidationRule[A]` has type `A`.
 
 ```
-val a: ValidationRule[Int] = min(0)
+val a: ValidationRule[Int] = lessThan(0)
 ```
 
 ## Types
 
 ### String
 
+- required
+- alpha
+- alphaNum
 - minLength
 - maxLength
 - exactLength
@@ -39,6 +42,7 @@ val a: ValidationRule[Int] = min(0)
 ### Others
 
 - same
+- contains
 
 ## Composing
 
@@ -68,7 +72,7 @@ def uniqueEmail(email: String): ValidationRule[String] = {
 }
 
 val emailValidation: Validation[String] = {
-  string("email") flatMapWith { (v, x) => v is email and unique(x) }
+  string("email") addRuleSelf { (v, x) => v is email and unique(x) }
 }
 ```
 
